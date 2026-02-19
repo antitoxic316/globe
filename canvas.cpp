@@ -23,63 +23,34 @@ void Canvas::initializeGL(){
     if (!globeShaderProgram->link())
         qDebug() << "Shader link error:" << globeShaderProgram->log();
 
-    float vertices[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-    };
-
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &texVBO);
+    glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
 
+    //position
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glBufferData(GL_ARRAY_BUFFER, sphereNumVertices_*sizeof(float), sphereVertices_, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sphereNumIndeces_*sizeof(unsigned int), sphereIndices_, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //texture
+    glBindBuffer(GL_ARRAY_BUFFER, texVBO);
+    glBufferData(GL_ARRAY_BUFFER, sphereTexCoordsCount_*sizeof(float), sphereTexCoords_, GL_STATIC_DRAW);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+
+    globeTex_ = new QOpenGLTexture(QImage(sphereTexPath_).mirrored(true, false));
+    globeTex_->setMinificationFilter(QOpenGLTexture::Nearest);
+    globeTex_->setMagnificationFilter(QOpenGLTexture::Linear);
+    globeTex_->setWrapMode(QOpenGLTexture::Repeat);
+
     glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     markerShaderProgram = new QOpenGLShaderProgram(this);
     if (!markerShaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, markerVertexShaderPath))
@@ -106,8 +77,9 @@ void Canvas::initializeGL(){
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //todo clean up shader program
 };
 
 void Canvas::resizeGL(int w, int h){
@@ -129,16 +101,15 @@ void Canvas::paintGL(){
     globeShaderProgram->setUniformValue("model", model);
 
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glDrawElements(GL_TRIANGLES, sphereNumIndeces_, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     globeShaderProgram->release();
-    
     
     markerShaderProgram->bind();
     markerShaderProgram->setUniformValue("projection", projMatrix);
-
-    qDebug() << rotation_;
 
     QMatrix4x4 markmodel;
     markmodel.translate(0.0f, 0.0f, -2.0f);
@@ -146,7 +117,11 @@ void Canvas::paintGL(){
     markerShaderProgram->setUniformValue("globeAngles", QVector2D(0, 0));
     markerShaderProgram->setUniformValue("rotQuaternion", rotation_.toVector4D());
     markerShaderProgram->setUniformValue("R", 1.0f);
+    globeShaderProgram->setUniformValue("texture1", 0);
 
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, globeTex_->textureId());
+    glActiveTexture(0);
 
     glBindVertexArray(markerVAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -192,49 +167,75 @@ void Canvas::mouseMoveEvent(QMouseEvent *e) {
 }
 
 
-//todo optimize with VBE
-static void generateSphereVertices(int sectorN, int stackN){
-    float sectorStep = M_PI / sectorN;
-    float stackStep = M_PI / stackN;
+//code is adjusted from https://songho.ca/opengl/gl_sphere.html#example_sphere
+void Canvas::generateSphereVertices(){
+    float x, y, z, xz;                              // vertex position
+    float nx, ny, nz, lengthInv = 1.0f / sphereR_;    // vertex normal
+    float s, t;                                     // vertex texCoord
 
-    float phi = 0;
-    float neow = 0;
+    float sectorStep = 2 * M_PI / sectorCount;
+    float stackStep = M_PI / stackCount;
+    float sectorAngle, stackAngle;
 
-    for(int i = 0; i < sectorN; i+=6*3){
-        sphereVertices_[i] = cos(phi) + cos(neow);
-        sphereVertices_[i+1] = sin(phi);
-        sphereVertices_[i+2] = cos(phi) + sin(neow);
+    for(int i = 0; i <= stackCount; ++i)
+    {
+        stackAngle = M_PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
+        xz = sphereR_ * cosf(stackAngle);             // r * cos(u)
+        y = sphereR_ * sinf(stackAngle);              // r * sin(u)
 
-        phi += stackStep;
+        // add (sectorCount+1) vertices per stack
+        // first and last vertices have same position and normal, but different tex coords
+        for(int j = 0; j <= sectorCount; ++j)
+        {
+            sectorAngle = j * sectorStep;           // starting from 0 to 2pi
 
-        sphereVertices_[i+3] = cos(phi) + cos(neow);
-        sphereVertices_[i+4] = sin(phi);
-        sphereVertices_[i+5] = cos(phi) + sin(neow);
+            int index = (i * (sectorCount + 1) + j) * 3;
 
-        phi -= stackStep;
-        neow += sectorStep;
+            // vertex position (x, y, z)
+            x = xz * cosf(sectorAngle);             // r * cos(u) * cos(v)
+            z = xz * sinf(sectorAngle);             // r * cos(u) * sin(v)
+            sphereVertices_[index] = x;
+            sphereVertices_[index+1] = y;
+            sphereVertices_[index+2] = z;
 
-        sphereVertices_[i+6] = cos(phi) + cos(neow);
-        sphereVertices_[i+7] = sin(phi);
-        sphereVertices_[i+8] = cos(phi) + sin(neow);
+            int texIndex = (i * (sectorCount+1) + j) * 2;
+            s = (float)j / sectorCount;
+            t = (float)i / stackCount;
+            sphereTexCoords_[texIndex] = s;
+            sphereTexCoords_[texIndex+1] = t;
+        }
+    }
 
-        sphereVertices_[i+9] = cos(phi) + cos(neow);
-        sphereVertices_[i+10] = sin(phi);
-        sphereVertices_[i+11] = cos(phi) + sin(neow);
+    int k1, k2;
+    for(int i = 0; i < stackCount; ++i)
+    {
+        k1 = i * (sectorCount + 1);     // beginning of current stack
+        k2 = k1 + sectorCount + 1;      // beginning of next stack
 
-        phi += stackStep;
-        neow -= sectorStep;
+        for(int j = 0; j < sectorCount; ++j, ++k1, ++k2)
+        {
+            int offset = 3;
 
-        sphereVertices_[i+12] = cos(phi) + cos(neow);
-        sphereVertices_[i+13] = sin(phi);
-        sphereVertices_[i+14] = cos(phi) + sin(neow);
+            int index = (i*sectorCount + j) * 6;
+            // 2 triangles per sector excluding first and last stacks
+            // k1 => k2 => k1+1
+            if(i != 0)
+            {
+                sphereIndices_[index] = (k1);
+                sphereIndices_[index+1] = (k2);
+                sphereIndices_[index+2] = (k1 + 1);
+            } else {
+                offset = 0;
+            }
 
-        neow += sectorStep;
 
-        sphereVertices_[i+12] = cos(phi) + cos(neow);
-        sphereVertices_[i+13] = sin(phi);
-        sphereVertices_[i+14] = cos(phi) + sin(neow);
-
-        phi += stackStep;
+            // k1+1 => k2 => k2+1
+            if(i != (stackCount-1))
+            {
+                sphereIndices_[index+offset] = (k1 + 1);
+                sphereIndices_[index+offset+1] = (k2);
+                sphereIndices_[index+offset+2] = (k2 + 1);
+            }
+        }
     }
 }

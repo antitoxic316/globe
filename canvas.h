@@ -6,6 +6,7 @@
 #include <QMatrix4x4>
 #include <QQuaternion>
 #include <QOpenGLFunctions_4_5_Core>
+#include <QOpenGLTexture>
 
 #include <cstdlib>
 
@@ -16,7 +17,7 @@ private:
     Q_OBJECT
 
     QOpenGLShaderProgram *globeShaderProgram;
-    unsigned int VAO, VBO;
+    unsigned int VAO, VBO, texVBO, EBO;
     QOpenGLShaderProgram *markerShaderProgram;
     unsigned int markerVAO, markerVBO;
     QMatrix4x4 projMatrix;
@@ -27,6 +28,8 @@ private:
     QString markerFragmentShaderPath;
     QString markerVertexShaderPath;
 
+    QString sphereTexPath_;
+
     QQuaternion rotation_;
     bool mousePressed_ = false;
     int prevX_ = 0;
@@ -35,15 +38,24 @@ private:
     float rotXMultiplier_ = 3.0f;
     float rotYMultiplier_ = 3.0f;
 
-    int minCanvH_ = 300;
-    int minCanvW_ = 300;
+    int minCanvH_ = 800;
+    int minCanvW_ = 800;
 
-    int sectorN_ = 10;
-    int stackN_ = 10;
-    int sphereNumVertices_ = 6*3*sectorN_*stackN_;
+    int sphereR_ = 1;
+    int sectorCount = 20;
+    int stackCount = 20;
+
+    int sphereNumVertices_ = 3 * (stackCount + 1) * (sectorCount + 1);
     float *sphereVertices_ = (float *)malloc(sphereNumVertices_ * sizeof(float));
 
-    void generateSphereVertices(int sectorN, int stackN);
+    int sphereNumIndeces_ = 6*sectorCount*stackCount;
+    unsigned int *sphereIndices_ = (unsigned int *)malloc(sphereNumIndeces_ * sizeof(unsigned int));
+
+    int sphereTexCoordsCount_ = 2 * (stackCount + 1) * (sectorCount + 1);
+    float *sphereTexCoords_ = (float *)malloc(sphereTexCoordsCount_ * sizeof(float));
+    QOpenGLTexture *globeTex_;
+
+    void generateSphereVertices();
 public:
     Canvas(QWidget *parent = nullptr) : QOpenGLWidget(parent){
         globeFragmentShaderPath.append(std::filesystem::current_path().c_str()).append("/resources/globe.fs");
@@ -52,11 +64,21 @@ public:
         markerFragmentShaderPath.append(std::filesystem::current_path().c_str()).append("/resources/marker.fs");
         markerVertexShaderPath.append(std::filesystem::current_path().c_str()).append("/resources/marker.vs");
 
+        sphereTexPath_.append(std::filesystem::current_path().c_str()).append("/resources/1_earth_8k.jpg");
+
         this->setMinimumHeight(minCanvH_);
         this->setMinimumWidth(minCanvW_);
         this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+        generateSphereVertices();
     };
-    ~Canvas(){};
+    ~Canvas(){
+        free(sphereVertices_);
+        free(sphereIndices_);
+        free(sphereTexCoords_);
+
+        if (globeTex_) delete(globeTex_);
+    };
 protected:
     void initializeGL() override;
     void resizeGL(int w, int h) override;

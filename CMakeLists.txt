@@ -13,6 +13,7 @@ qt_add_executable(globe
     mainwindow.ui
     canvas.cpp
     canvas.h
+    mainwindow.qml
 )
 
 target_link_libraries(globe
