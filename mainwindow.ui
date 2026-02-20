@@ -112,9 +112,9 @@
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_5">
                 <item>
-                 <widget class="QPushButton" name="pushButton">
+                 <widget class="QPushButton" name="resetGlobePushButton">
                   <property name="text">
-                   <string>PushButton</string>
+                   <string>Reset globe rotation</string>
                   </property>
                  </widget>
                 </item>

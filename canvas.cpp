@@ -244,3 +244,8 @@ void Canvas::generateSphereVertices(){
         }
     }
 }
+
+void Canvas::onGlobeRotationUpdated(){
+    rotation_ = QQuaternion::fromEulerAngles(session_->getGlobeEulers());
+    update();
+}

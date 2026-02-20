@@ -55,6 +55,7 @@ private slots:
 private:
     void onAddMarkerButtonClicked();
     void onRemoveMarkerButtonClicked();
+    void onResetGlobeRotationClicked();
 
     void createActions();
     void createMenus();

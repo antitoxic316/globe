@@ -57,6 +57,8 @@ private:
     void generateSphereVertices();
 
     std::shared_ptr<Session> session_;
+private slots:
+    void onGlobeRotationUpdated();
 public:
     Canvas(QWidget *parent, std::shared_ptr<Session> session)
         : QOpenGLWidget(parent), session_(session)
@@ -70,6 +72,8 @@ public:
         sphereTexPath_.append(std::filesystem::current_path().c_str()).append("/resources/1_earth_8k.jpg");
 
         generateSphereVertices();
+
+        connect(session_.get(), &Session::globeRotated, this, &Canvas::onGlobeRotationUpdated);
     };
     ~Canvas(){
         free(sphereVertices_);

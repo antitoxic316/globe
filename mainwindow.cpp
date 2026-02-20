@@ -1,6 +1,7 @@
 
 #include <QWidget>
 #include <QContextMenuEvent>
+#include <QMessageBox>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -36,6 +37,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui_->addMarkerButton, &QPushButton::clicked, this, &MainWindow::onAddMarkerButtonClicked);
     connect(ui_->removeMarkerButton, &QPushButton::clicked, this, &MainWindow::onRemoveMarkerButtonClicked);
+
+    connect(ui_->resetGlobePushButton, &QPushButton::clicked, this, &MainWindow::onResetGlobeRotationClicked);
 
     connect(session_.get(), &Session::globeRotated, this, &MainWindow::onGlobeRotated);
 }
@@ -246,59 +249,74 @@ void MainWindow::markerSourceListUpdated(){
 }
 
 void MainWindow::openSession(){
-
+    QMessageBox::about(this, tr("Developement in progress :("),
+                       tr("feauture not supported yet, sorry..."));
 }
 
 void MainWindow::saveSession(){
-
+    QMessageBox::about(this, tr("Developement in progress :("),
+                       tr("feauture not supported yet, sorry..."));
 }
 
 void MainWindow::newSession(){
-
+    QMessageBox::about(this, tr("Developement in progress :("),
+                       tr("feauture not supported yet, sorry..."));
 }
 
 void MainWindow::captureCanvas(){
-
+    QMessageBox::about(this, tr("Developement in progress :("),
+                       tr("feauture not supported yet, sorry..."));
 }
 
 void MainWindow::undo(){
-
+    QMessageBox::about(this, tr("Developement in progress :("),
+                       tr("feauture not supported yet, sorry..."));
 }
 
 void MainWindow::redo(){
-
+    QMessageBox::about(this, tr("Developement in progress :("),
+                       tr("feauture not supported yet, sorry..."));
 }
 
 void MainWindow::about(){
-
+    QMessageBox::about(this, tr("About Globe"),
+                       tr("The <b>Globe</b> is a 3d earth visualizer that supports "
+                          "placement of arbitrary markers on its surface"
+                          "menu-bar menus and context menus."));
 }
 
 void MainWindow::aboutQt(){
-
+    QMessageBox::aboutQt(this, tr("About Qt"));
 }
 
 void MainWindow::copy(){
-
+    QMessageBox::about(this, tr("Developement in progress :("),
+                       tr("feauture not supported yet, sorry..."));
 }
 
 void MainWindow::paste(){
-
+    QMessageBox::about(this, tr("Developement in progress :("),
+                       tr("feauture not supported yet, sorry..."));
 }
 
 void MainWindow::cut(){
-
+    QMessageBox::about(this, tr("Developement in progress :("),
+                       tr("feauture not supported yet, sorry..."));
 }
 
 void MainWindow::importMarkersFromPythonScript(){
-
+    QMessageBox::about(this, tr("Developement in progress :("),
+                       tr("feauture not supported yet, sorry..."));
 }
 
 void MainWindow::importMarkersFromCsvFile(){
-
+    QMessageBox::about(this, tr("Developement in progress :("),
+                       tr("feauture not supported yet, sorry..."));
 }
 
 void MainWindow::exportMarkers(){
-
+    QMessageBox::about(this, tr("Developement in progress :("),
+                       tr("feauture not supported yet, sorry..."));
 }
 
 void MainWindow::onGlobeRotated(){
@@ -306,4 +324,8 @@ void MainWindow::onGlobeRotated(){
     ui_->xGlobeRot->setText(QString::number(eulers.x()));
     ui_->yGlobeRot->setText(QString::number(eulers.y()));
     ui_->zGlobeRot->setText(QString::number(eulers.z()));
+}
+
+void MainWindow::onResetGlobeRotationClicked(){
+    session_->updateGlobeRotation(QVector3D(0,0,0));
 }
