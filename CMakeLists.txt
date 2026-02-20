@@ -13,7 +13,9 @@ qt_add_executable(globe
     mainwindow.ui
     canvas.cpp
     canvas.h
-    mainwindow.qml
+    session.h session.cpp
+    addmarkerdialog.h addmarkerdialog.cpp addmarkerdialog.ui
+
 )
 
 target_link_libraries(globe

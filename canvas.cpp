@@ -99,6 +99,11 @@ void Canvas::paintGL(){
     model.translate(0.0f, 0.0f, -2.0f);
     model.rotate(rotation_);
     globeShaderProgram->setUniformValue("model", model);
+    globeShaderProgram->setUniformValue("texture1", 0);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, globeTex_->textureId());
+    glActiveTexture(0);
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -111,25 +116,23 @@ void Canvas::paintGL(){
     markerShaderProgram->bind();
     markerShaderProgram->setUniformValue("projection", projMatrix);
 
-    QMatrix4x4 markmodel;
-    markmodel.translate(0.0f, 0.0f, -2.0f);
-    markerShaderProgram->setUniformValue("model", markmodel);
-    markerShaderProgram->setUniformValue("globeAngles", QVector2D(0, 0));
-    markerShaderProgram->setUniformValue("rotQuaternion", rotation_.toVector4D());
-    markerShaderProgram->setUniformValue("R", 1.0f);
-    globeShaderProgram->setUniformValue("texture1", 0);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, globeTex_->textureId());
-    glActiveTexture(0);
+    QList<Marker> markers = session_->getMarkers();
 
-    glBindVertexArray(markerVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    for(int i = 0; i < markers.size(); i++){
+        float lat = markers.at(i).latitude;
+        float lon = markers.at(i).longitude;
 
-    markerShaderProgram->setUniformValue("globeAngles", QVector2D(90.0f, 0));
-    markerShaderProgram->setUniformValue("rotQuaternion", rotation_.toVector4D());
+        QMatrix4x4 markmodel;
+        markmodel.translate(0.0f, 0.0f, -2.0f);
+        markerShaderProgram->setUniformValue("model", markmodel);
+        markerShaderProgram->setUniformValue("globeAngles", QVector2D(lon, lat));
+        markerShaderProgram->setUniformValue("rotQuaternion", rotation_.toVector4D());
+        markerShaderProgram->setUniformValue("R", 1.0f);
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(markerVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+    }
 
     glBindVertexArray(0);
     markerShaderProgram->release();
@@ -162,6 +165,8 @@ void Canvas::mouseMoveEvent(QMouseEvent *e) {
 
     prevX_ = x;
     prevY_ = y;
+
+    session_->updateGlobeRotation(rotation_.toEulerAngles());
 
     update();
 }

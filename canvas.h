@@ -7,10 +7,12 @@
 #include <QQuaternion>
 #include <QOpenGLFunctions_4_5_Core>
 #include <QOpenGLTexture>
+#include <QLabel>
 
 #include <cstdlib>
-
 #include <filesystem>
+
+#include "session.h"
 
 class Canvas : public QOpenGLWidget, protected QOpenGLFunctions_4_5_Core {
 private:
@@ -38,9 +40,6 @@ private:
     float rotXMultiplier_ = 3.0f;
     float rotYMultiplier_ = 3.0f;
 
-    int minCanvH_ = 800;
-    int minCanvW_ = 800;
-
     int sphereR_ = 1;
     int sectorCount = 20;
     int stackCount = 20;
@@ -56,8 +55,12 @@ private:
     QOpenGLTexture *globeTex_;
 
     void generateSphereVertices();
+
+    std::shared_ptr<Session> session_;
 public:
-    Canvas(QWidget *parent = nullptr) : QOpenGLWidget(parent){
+    Canvas(QWidget *parent, std::shared_ptr<Session> session)
+        : QOpenGLWidget(parent), session_(session)
+    {
         globeFragmentShaderPath.append(std::filesystem::current_path().c_str()).append("/resources/globe.fs");
         globeVertexShaderPath.append(std::filesystem::current_path().c_str()).append("/resources/globe.vs");
 
@@ -65,10 +68,6 @@ public:
         markerVertexShaderPath.append(std::filesystem::current_path().c_str()).append("/resources/marker.vs");
 
         sphereTexPath_.append(std::filesystem::current_path().c_str()).append("/resources/1_earth_8k.jpg");
-
-        this->setMinimumHeight(minCanvH_);
-        this->setMinimumWidth(minCanvW_);
-        this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
         generateSphereVertices();
     };
@@ -87,6 +86,8 @@ protected:
     void mousePressEvent(QMouseEvent *e) override;
     void mouseReleaseEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;
+
+    QSize sizeHint() const override { return QSize(400, 400); }
 };
 
 #endif
